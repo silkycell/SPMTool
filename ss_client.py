@@ -151,11 +151,17 @@ def main():
         previous_data[key] = value
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     # Set this to localhost if you are running a local server or the server from the same machine as the client
     # Or set it to the provided IP of the person running the server
-    server_ip = "localhost" 
-    server_port = 5556 # Set this to the port of the server
+    server_ip = input("Please enter the IP Address of the server you'd like to connect to: ")
 
+    try: 
+        server_port = int(input("Port: "))
+    except ValueError as e:
+        print(f"Error parsing port: {e}")
+        exit()
+    
     while True:
             try:
                 # Connect to the server
