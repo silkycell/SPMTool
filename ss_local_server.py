@@ -25,7 +25,7 @@ stats = {
 }
 
 # File path for the stats save file
-SAVE_FILE_PATH = 'stats.json'
+SAVE_FILE_PATH = 'stats_local.json'
 
 # Locks for thread synchronization
 save_file_lock = threading.Lock()
