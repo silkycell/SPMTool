@@ -241,10 +241,7 @@ def main():
                                 valid_send = False
                                 fix_score = recived_data["Score"]
                             manual_levelup(fix_score)
-
-                            if changes['Coins'] and changes['Coins'] <= 0:
-                                valid_send = False
-
+                            
                             if changes['Max HP'] and changes["Max HP"] <= 0:
                                 valid_send = False
 
