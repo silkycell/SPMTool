@@ -219,9 +219,15 @@ def send_data():
 def main():
     # Load stats from save file
     load_stats()
+    
+    try:
+        server_port = int(input("Port: "))
+    except ValueError as e:
+        print(f"Error parsing port: {e}")
+        exit()
 
     # Create the server, set this to your public IP or cloud server, and change the port to an open port on your network/cloud service.
-    with ThreadedTCPServer(("0.0.0.0", 5556), MyTCPHandler) as server:
+    with ThreadedTCPServer(("0.0.0.0", server_port), MyTCPHandler) as server:
         print("Server started. Listening for connections...")
         
         # Start a thread to save stats periodically
