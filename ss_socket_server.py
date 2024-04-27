@@ -18,10 +18,15 @@ stats = {
     'Max HP': 10,
     'Attack': 1,
     'Coins': 0,
+    '3D Bar': 10,
     'Level': 99,
     'FlipFlop Pipe': 0,
     'Low HP Textbox': 16,
 }
+
+players_3D_bit = {}
+is_someone_in_3D = False
+flip_timer = time.time() + 1
 
 previous_level = 1
 
@@ -70,6 +75,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
     def handle(self):
         global messages
         global stats
+        global is_someone_in_3D
+        is_someone_in_3D_last = False
         # Add client connection to the list
         socket_list.append(self.request)
 
@@ -101,18 +108,64 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
                                 # Check if the data changed is in the stats dictionary
                                 for key in data['data']:
                                     if key in stats:
+                                        if key == "HP" and data['data'][key] != 0:
+                                            stats['3D Bar'] = 10
+                                        
                                         stats[key] += data['data'][key]
+                        
+                        if '3dBit' in data and 'user' in data:
+                            players_3D_bit[str(self.client_address)] = data['3dBit']
                     except json.JSONDecodeError:
                         pass
                         # print(f"Invalid JSON data received from client {addr}. Skipping.")
+                
+                is_someone_in_3D = False
 
+                for key in players_3D_bit:
+                    if players_3D_bit[key] == True:
+                        is_someone_in_3D = True
+                        break
+
+                if is_someone_in_3D_last != is_someone_in_3D:
+                    is_someone_in_3D_changed(is_someone_in_3D)
+                
+                is_someone_in_3D_last = is_someone_in_3D
+                
             except (ConnectionResetError, ConnectionAbortedError):
                 # Client disconnected
                 print(f"Client {self.client_address} disconnected.")
                 # Remove client from the socket list
                 if self.request in socket_list:
                     socket_list.remove(self.request)
+                if self.request in players_3D_bit:
+                    players_3D_bit.pop(str(self.client_address))
                 break
+
+def is_someone_in_3D_changed(value):
+    global flip_timer
+    print("3D set to", value)
+    flip_timer = time.time() + 1
+
+def countdown_flip_timer():
+    global is_someone_in_3D
+    global flip_timer
+    global stats
+
+    while True:
+        # print(is_someone_in_3D, flip_timer)
+        if time.time() > flip_timer:
+            if is_someone_in_3D:
+                stats['3D Bar'] -= 1
+
+                if stats['3D Bar'] < 0:
+                    stats['3D Bar'] = 0
+            elif stats['3D Bar'] < 10:
+                stats['3D Bar'] += 1
+
+                if stats['3D Bar'] > 10:
+                    stats['3D Bar'] = 10
+                    
+            flip_timer = time.time() + 1
 
 # Function to periodically save stats
 def save_stats_periodically():
@@ -122,9 +175,12 @@ def save_stats_periodically():
         try:
             time.sleep(10)  # Save stats every 10 seconds
             with open(SAVE_FILE_PATH, 'w') as file:
-                json.dump(stats, file)
+                stats_save = stats.copy()
+                stats_save["3D Bar"] = 10
+
+                json.dump(stats_save, file)
                 print('[Stats Saved]')
-                print(stats)
+                print(stats_save)
         except Exception as e:
             print(f"An error occurred while saving stats: {e}")
 
@@ -176,6 +232,9 @@ def main():
         manual_levelup_check()
         sending_thread = threading.Thread(target=send_data)
         sending_thread.start()
+
+        flip_timer_thread = threading.Thread(target=countdown_flip_timer)
+        flip_timer_thread.start()
         
         # Activate the server; this will keep running until you interrupt the program with Ctrl-C
         server.serve_forever()

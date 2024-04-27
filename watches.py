@@ -503,6 +503,15 @@ watches = {
         },
         "datatype": Datatype.WORD
     },
+    "3D Bit" : {
+        "addresses" : {
+            "E": [0x8076AE4B, 0x0, 0x0],
+            "P": [0x0, 0x0],
+            "J": [0x0, 0x0],
+            "K": [0x0]
+        },
+        "datatype": Datatype.BOOL
+    },
     "Pixl slot 1" : {
         "addresses" : {
             "E": [0x804ceaec, 0, 0],

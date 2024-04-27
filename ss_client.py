@@ -117,6 +117,24 @@ watch_list = {
         },
         "datatype": Datatype.WORD
     },
+    "3D Bar" : {
+    "addresses" : {
+        "E": [0x804cea3c, 0x804d02bc, 0x804d043c],
+        "P": [0x80511a3c, 0x80511a3c],
+        "J": [0x804a3d3c, 0x804a533c],
+        "K": [0x80549324]
+    },
+    "datatype": Datatype.WORD
+    },
+    "3D Bit" : {
+        "addresses" : {
+            "E": [0x8076AE4B, 0x0, 0x0],
+            "P": [0x0, 0x0],
+            "J": [0x0, 0x0],
+            "K": [0x0]
+        },
+        "datatype": Datatype.BOOL
+    },
     "FlipFlop Pipe / GSWF 531 + GSWF 534" : { 
         # GSWF's are booleans stored on a byte with 7 other GSWF bits.
         # GSWF 531 is on Bit 5, and GSWF 534 is on Bit 2 of the below addresses
@@ -215,12 +233,12 @@ def main():
                     changes = {}
                     for key in watch_list:
                         if key in data['data'] and initial_join:
-                            if key == "File Name":
+                            if key == "File Name" or key == "3D Bar":
                                 continue
                             else:
                                 changes[key] = current_data[key] - recived_data[key]
                         elif key in data['data']:
-                            if key == "File Name":
+                            if key == "File Name" or key == "3D Bar":
                                 continue
                             else:
                                 changes[key] = current_data[key] - previous_data[key]
@@ -248,7 +266,8 @@ def main():
                         sending = {
                             'data': changes,
                             'message': messages,
-                            'user': username
+                            'user': username,
+                            '3dBit': get_watch("3D Bit").read() and get_watch("Cutscene Count").read() == 0
                         }
 
                     if valid_send and initial_join == False:
@@ -261,7 +280,10 @@ def main():
                                 continue
                             else:
                                 get_data = get_watch(key)
-                                if current_data[key] == previous_data[key] + changes[key] and initial_join:
+
+                                if key == "3D Bar": # this is stupid but im lazy *picks nose*
+                                    get_data.write(recived_data[key])
+                                elif current_data[key] == previous_data[key] + changes[key] and initial_join:
                                     initial_join = 2
                                     continue
                                 elif current_data[key] == recived_data[key] + changes[key] and initial_join == 2:
@@ -280,7 +302,7 @@ def main():
                         initial_join = False
                     else:
                         for key in watch_list:
-                            if key == "File Name":
+                            if key == "File Name" or key == "3D Bar":
                                 continue
                             else:
                                 if key in data['data']:
